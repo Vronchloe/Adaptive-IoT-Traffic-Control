@@ -700,13 +700,13 @@ class InteractionManager {
             body.innerHTML = `
                 <div class="madeby-grid">
                     <div class="madeby-card">
-                        <img src="/images/arman.jpg" alt="Arman">
+                        <img src="images/arman.jpg" alt="Arman">
                         <div class="name">Arman Ranjan</div>
                         <div class="role">Project Leader & Developer</div>
                     </div>
 
                     <div class="madeby-card">
-                        <img src="/images/professor.jpg" alt="Professor">
+                        <img src="images/professor.jpg" alt="Professor">
                         <div class="name">Dr. Swaminathan Annadurai</div>
                         <div class="role">Supervisor and Guide</div>
                     </div>
