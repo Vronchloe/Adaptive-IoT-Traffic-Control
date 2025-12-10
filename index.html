@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adaptive IoT Traffic Signal Control System</title>
+    
+    <!-- External Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    
+    <!-- Application Stylesheets -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-left">
+            <h1>Adaptive IoT Traffic Control</h1>
+            <p class="subtitle">Smart intersection simulation with dynamic signal control</p>
+        </div>
+
+        <!-- Top-right info buttons -->
+        <div class="header-info-buttons">
+            <button id="aboutBtn"     class="btn header-info-btn" aria-pressed="false">About</button>
+            <button id="referenceBtn" class="btn header-info-btn" aria-pressed="false">Info</button>
+            <button id="madeByBtn"    class="btn header-info-btn" aria-pressed="false">Made By</button>
+        </div>
+    </header>
+
+    <!-- Info Window (full-width under header) -->
+    <div id="infoWindow" class="info-window hidden" aria-hidden="true">
+        <div class="info-window-header">
+            <span id="infoWindowTitle">Info</span>
+            <button id="infoWindowClose" class="btn btn--outline" aria-label="Close">✕</button>
+        </div>
+
+        <div id="infoWindowBody" class="info-window-body">
+            <!-- JS injects About / Info / Made By content -->
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <main class="app-container">
+        <!-- LEFT SIDEBAR: Control Panel -->
+        <aside class="control-panel">
+            <div class="panel-section">
+                <h3>⏱️ Playback Controls</h3>
+                <div class="button-group">
+                    <button id="playBtn" class="btn btn-primary">▶️ Play</button>
+                    <button id="pauseResumeBtn" class="btn btn-secondary" disabled>⏸️ Pause</button>
+                    <button id="stopBtn" class="btn btn-danger" disabled>⏹️ Stop</button>
+                    <button id="stepBtn" class="btn btn-secondary" disabled>⏭️ Step</button>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>⏲️ Duration Control</h3>
+                <div class="form-group">
+                    <label>Simulation Duration (seconds)</label>
+                    <input type="number" id="simulationDuration" class="form-control" 
+                           value="0" min="0" max="3600" placeholder="0 = infinite">
+                    <small>- 0 = infinite</small>
+                    <small>- >0 = stops after specified seconds</small>
+                </div>
+                <div id="simulationTime" class="time-display">
+                    <div class="remaining-time">
+                        <span class="time-label">Remaining:</span>
+                        <span id="remainingTimeValue" class="time-value">—</span>
+                        <span class="time-unit">seconds</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>⚡ Speed Control</h3>
+                <select id="speedControl" class="form-control">
+                    <option value="0.5">0.5x (Slow)</option>
+                    <option value="1" selected>1x (Normal)</option>
+                    <option value="2">2x (Fast)</option>
+                    <option value="5">5x (Very Fast)</option>
+                </select>
+            </div>
+
+            <div class="panel-section">
+                <h3>🚗 Traffic Density Override</h3>
+                <div class="density-control">
+                    <label>North: <span id="densityNorthDisplay">50%</span></label>
+                    <input type="range" id="densityNorth" class="slider" min="0" max="100" value="50">
+                </div>
+                <div class="density-control">
+                    <label>South: <span id="densitySouthDisplay">50%</span></label>
+                    <input type="range" id="densitySouth" class="slider" min="0" max="100" value="50">
+                </div>
+                <div class="density-control">
+                    <label>East: <span id="densityEastDisplay">50%</span></label>
+                    <input type="range" id="densityEast" class="slider" min="0" max="100" value="50">
+                </div>
+                <div class="density-control">
+                    <label>West: <span id="densityWestDisplay">50%</span></label>
+                    <input type="range" id="densityWest" class="slider" min="0" max="100" value="50">
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>⚙️ Configuration</h3>
+                <div class="form-group">
+                    <label>Cycle Length (s)</label>
+                    <input type="number" id="cycleLength" class="form-control" value="60" min="40" max="120">
+                </div>
+                <div class="form-group">
+                    <label>Min Green (s)</label>
+                    <input type="number" id="minGreen" class="form-control" value="10" min="5" max="20">
+                </div>
+                <div class="form-group">
+                    <label>Max Green (s)</label>
+                    <input type="number" id="maxGreen" class="form-control" value="60" min="30" max="80">
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>💾 Scenario Management</h3>
+                <div class="button-group vertical">
+                    <button id="saveScenarioBtn" class="btn btn-primary btn-sm">💾 Save</button>
+                    <select id="loadScenarioBtn" class="form-control">
+                        <option value="">-- Load Scenario --</option>
+                    </select>
+                    <button id="deleteScenarioBtn" class="btn btn-danger btn-sm">🗑️ Delete</button>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>📥 Export</h3>
+                <div class="button-group vertical">
+                    <button id="exportCSVBtn" class="btn btn-secondary btn-sm">📊 CSV</button>
+                    <button id="exportJSONBtn" class="btn btn-secondary btn-sm">📄 JSON</button>
+                    <button id="exportScreenshotBtn" class="btn btn-secondary btn-sm">📸 Screenshot</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CENTER: Dashboard -->
+        <main class="dashboard" id="dashboard">
+            <!-- Metrics Cards -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-label">Cycle Count</div>
+                    <div class="metric-value" id="metric-cycle">0</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Latency</div>
+                    <div class="metric-value" id="metric-latency">0.00 ms</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Avg Density</div>
+                    <div class="metric-value" id="metric-avgdensity">0%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Efficiency</div>
+                    <div class="metric-value" id="metric-efficiency">0</div>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h3>📈 Density Trend</h3>
+                    <canvas id="densityTrendChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>🟢 Green Time Allocation</h3>
+                    <canvas id="greenTimeChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>⭐ Lane Performance</h3>
+                    <canvas id="performanceChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>📊 Efficiency Over Time</h3>
+                    <canvas id="efficiencyChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Intersection Visualization -->
+            <div class="visualization-section">
+                <h3>🚦 Intersection Status</h3>
+                <div class="intersection-display">
+                    <svg viewBox="0 0 400 400" class="intersection-svg">
+                        <!-- Roads -->
+                        <rect x="0" y="150" width="400" height="100" fill="#888888" opacity="0.3"/>
+                        <rect x="150" y="0" width="100" height="400" fill="#888888" opacity="0.3"/>
+                        
+                        <!-- Center intersection -->
+                        <circle cx="200" cy="200" r="30" fill="#FFF" stroke="#333" stroke-width="2"/>
+                        
+                        <!-- Traffic signals -->
+                        <circle id="signal-north" cx="200" cy="100" r="15" fill="#EF4444" stroke="#333" stroke-width="2"/>
+                        <circle id="signal-south" cx="200" cy="300" r="15" fill="#EF4444" stroke="#333" stroke-width="2"/>
+                        <circle id="signal-east" cx="300" cy="200" r="15" fill="#EF4444" stroke="#333" stroke-width="2"/>
+                        <circle id="signal-west" cx="100" cy="200" r="15" fill="#EF4444" stroke="#333" stroke-width="2"/>
+                        
+                        <!-- Labels -->
+                        <text x="200" y="70" text-anchor="middle" font-size="14" font-weight="bold">N</text>
+                        <text x="200" y="340" text-anchor="middle" font-size="14" font-weight="bold">S</text>
+                        <text x="330" y="205" text-anchor="middle" font-size="14" font-weight="bold">E</text>
+                        <text x="70" y="205" text-anchor="middle" font-size="14" font-weight="bold">W</text>
+                    </svg>
+
+                    <!-- Status Table -->
+                    <table class="status-table">
+                        <thead>
+                            <tr>
+                                <th>Lane</th>
+                                <th>Density</th>
+                                <th>Green Time</th>
+                                <th>Signal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="intersectionTableBody">
+                            <tr>
+                                <td>North</td>
+                                <td>0%</td>
+                                <td>10s</td>
+                                <td><span class="signal-light signal-RED">●</span> RED</td>
+                            </tr>
+                            <tr>
+                                <td>South</td>
+                                <td>0%</td>
+                                <td>10s</td>
+                                <td><span class="signal-light signal-RED">●</span> RED</td>
+                            </tr>
+                            <tr>
+                                <td>East</td>
+                                <td>0%</td>
+                                <td>10s</td>
+                                <td><span class="signal-light signal-RED">●</span> RED</td>
+                            </tr>
+                            <tr>
+                                <td>West</td>
+                                <td>0%</td>
+                                <td>10s</td>
+                                <td><span class="signal-light signal-RED">●</span> RED</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <!-- RIGHT SIDEBAR: Analysis Panel -->
+        <aside class="analysis-panel">
+            <div class="panel-section">
+                <h3>📊 Summary Metrics</h3>
+                <div class="analysis-item">
+                    <label>Total Cycles:</label>
+                    <span id="analysisTotalCycles">0</span>
+                </div>
+                <div class="analysis-item">
+                    <label>Avg Efficiency:</label>
+                    <span id="analysisAvgEfficiency">0%</span>
+                </div>
+                <div class="analysis-item">
+                    <label>Overall Efficiency:</label>
+                    <span id="analysisOverallEfficiency">0%</span>
+                </div>
+                <div class="analysis-item">
+                    <label>Best Lane:</label>
+                    <span id="analysisBestLane">—</span>
+                </div>
+                <div class="analysis-item">
+                    <label>Worst Lane:</label>
+                    <span id="analysisWorstLane">—</span>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>🏆 Lane Rankings</h3>
+                <div id="laneRankings" class="ranking-list">
+                    <p style="color: #94A3B8; font-size: 0.875rem;">Run simulation to generate rankings...</p>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>💡 System Status</h3>
+                <div class="system-info">
+                    <p><strong>Status:</strong> <span id="systemStatus">Ready</span></p>
+                    <p><strong>Version:</strong> 1.0.1</strong></p>
+                    <p><strong>Components:</strong> 7</p>
+                    <p><small>Open console (F12) for debug info</small></p>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <p>🚦 Adaptive IoT Traffic Control System | Built for Smart Cities | <a href="#" target="_blank">Documentation</a> | <a href="#" target="_blank">GitHub</a></p>
+    </footer>
+
+    <!-- Application Scripts (in correct order) -->
+    <script src="js/sensor.js"></script>
+    <script src="js/controller.js"></script>
+    <script src="js/simulator.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/interactions.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

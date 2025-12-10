@@ -1,0 +1,389 @@
+# Adaptive Traffic Signal Control System - User Guide
+
+## What Is This App?
+
+An **interactive simulation system** that demonstrates how intelligent traffic signal control works in real-time. It simulates a 4-way intersection (North, South, East, West lanes) with adaptive traffic signal timing that automatically adjusts green light duration based on current traffic density.
+
+Think of it as a **"smart traffic light simulator"** that learns and adapts like modern city traffic management systems.
+
+---
+
+## Core Purpose
+
+**Solve the traffic optimization problem:**
+- Without adaptive control: All lanes get equal green time (e.g., 15s each), regardless of traffic
+- With adaptive control: Busy lanes get longer green time, quiet lanes get shorter time
+- **Result:** Reduced congestion, faster clearance, better traffic flow
+
+This app teaches you HOW this optimization works through live visualization and real-time data.
+
+---
+
+## What Problem Does It Solve?
+
+### The Traffic Problem
+```
+Traditional Fixed Timing:
+North: 30 cars waiting → 15s green → 15 cars pass ❌ Still congested
+South: 5 cars waiting  → 15s green → 5 cars pass ✅ Time wasted
+East: 25 cars waiting  → 15s green → 12 cars pass ❌ Still congested
+West: 8 cars waiting   → 15s green → 8 cars pass ✅ Time wasted
+
+Result: Unfair allocation, poor efficiency, traffic jams
+```
+
+### The Adaptive Solution
+```
+Adaptive Algorithm:
+North: 80% density → 18s green → 32 cars pass ✅ Efficient
+South: 40% density → 10s green → 4 cars pass ✅ Efficient
+East: 70% density → 17s green → 30 cars pass ✅ Efficient
+West: 50% density → 12s green → 10 cars pass ✅ Efficient
+
+Total green time: 18+10+17+12 = 57s (maintains cycle)
+Result: Fair allocation, optimized for actual traffic
+```
+
+---
+
+## How to Use This App
+
+### 1. **Set Up Your Scenario**
+
+#### Duration Control
+- **Duration Input:** How long to run the simulation (0 = infinite)
+- Default: 0 (runs forever)
+- Example: Set to 300 for a 5-minute test
+
+#### Traffic Density Sliders
+- **North/South/East/West Sliders:** Set traffic density 0-100%
+- Drag slider right = more traffic
+- Drag slider left = less traffic
+- Real-time effect: Affects green time allocation immediately
+
+#### Controller Configuration
+- **Cycle Length:** Total time for one complete light cycle (default: 60s)
+- **Min Green:** Minimum green time per lane (default: 10s, safety requirement)
+- **Max Green:** Maximum green time per lane (default: 60s, fairness limit)
+
+### 2. **Run the Simulation**
+
+#### Play Button
+- Starts simulation with your configured duration
+- Begins counting down from duration (or ∞ for infinite)
+- Timer updates every 100ms
+- Simulation tick every 2 seconds
+
+#### Pause/Resume Button
+- Pauses the simulation (preserves elapsed time)
+- Click again to resume from same point
+- Useful for examining data at specific moments
+
+#### Stop Button
+- Completely stops the simulation
+- Resets timer display to "—"
+- Clears any pause state
+
+#### Reset Button
+- Returns everything to initial state
+- Clears all history and charts
+- Resets sensors to default density
+
+### 3. **Monitor Live Data**
+
+#### Metrics Panel (Top-Left)
+- **Cycle Count:** How many signal cycles have completed
+- **Latency:** Simulated sensor response time
+- **Avg Density:** Average traffic density across all lanes
+- **Efficiency:** How well green time matches traffic demand
+
+#### Density Trend Chart
+- **X-axis:** Time progression
+- **Y-axis:** Density percentage (0-100%)
+- **4 Lines:** One for each lane
+- Shows traffic variation over time (smooth curves due to EMA smoothing)
+
+#### Green Time Allocation Chart
+- **X-axis:** Lane names
+- **Y-axis:** Green seconds (0-60s)
+- **4 Bars:** Updates each cycle to show proportional allocation
+- Higher density lanes = taller bars (more green time)
+
+#### Lane Performance Chart
+- Stacked bar showing density vs green time ratio
+- Visual comparison of allocation efficiency
+- Helps understand "density matching"
+
+#### Efficiency Chart
+- Single line showing overall system efficiency (0-100%)
+- Higher = better allocation match
+- Perfect alignment would be 100%
+
+#### Intersection Status Table
+- Real-time per-lane status:
+  - **Density:** Current traffic percentage
+  - **Green Time:** Allocated seconds for this cycle
+  - **Signal:** Current state (● RED or ● GREEN)
+
+---
+
+## Key Learning Concepts
+
+### 1. **Proportional Allocation**
+The algorithm allocates green time **proportional to traffic density**.
+
+**Formula:** `Green Time = (Lane Density / Total Density) × Available Green Time`
+
+**Example:**
+- North: 80 cars → 40%
+- South: 40 cars → 20%
+- East: 60 cars → 30%
+- West: 20 cars → 10%
+- Total: 200 cars
+
+With 60s cycle and 40s available green (20s for yellow/all-red):
+- North: 40% × 40s = **16s green**
+- South: 20% × 40s = **8s green**
+- East: 30% × 40s = **12s green**
+- West: 10% × 40s = **4s green**
+
+### 2. **Constraint Satisfaction**
+Green time must respect limits:
+- **Minimum:** Every lane gets at least 10s (safety)
+- **Maximum:** No lane gets more than 60s (fairness)
+
+### 3. **Real-Time Adaptation**
+The algorithm **recalculates every cycle** (~2 seconds) based on:
+- Current sensor readings (updated density)
+- Lane demand distribution
+- Time-of-day patterns (simulated)
+
+### 4. **EMA Smoothing**
+Density values are smoothed with **Exponential Moving Average** to:
+- Prevent jittery changes from random fluctuations
+- Create realistic smooth transitions
+- Avoid overreacting to temporary spikes
+
+**Formula:** `Smoothed = α × New + (1-α) × Previous`
+(α = 0.7 by default)
+
+### 5. **Time-of-Day Patterns**
+Traffic density varies by hour:
+- **7-9 AM & 5-7 PM:** Rush hours (1.5× multiplier)
+- **10 PM - 5 AM:** Night hours (0.3× multiplier)
+- **Other times:** Normal (1.0× multiplier)
+
+Observe how the app generates different patterns at different times!
+
+---
+
+## How to Learn From This App
+
+### Experiment 1: Effect of Density Changes
+1. Set duration to 60 seconds
+2. Set all sliders to 50% (balanced)
+3. Click Play → observe balanced green times
+4. During simulation, drag North slider to 90%
+5. Watch: Green time for North increases in next cycle!
+
+**Learning:** Adaptive control responds dynamically to demand.
+
+### Experiment 2: Constraint Limits
+1. Set one lane slider to 100% (very high)
+2. Play and observe:
+   - Green time increases but doesn't exceed 60s max
+   - Other lanes don't go below 10s min
+3. Notice: System finds balance within constraints
+
+**Learning:** Constraints prevent extreme allocations while maintaining fairness.
+
+### Experiment 3: Efficiency Calculation
+1. Play with balanced densities (all ~50%)
+2. Watch efficiency score (should be ~95-100%)
+3. Change one lane to 80%, another to 20%
+4. Efficiency might drop to ~70-80%
+
+**Learning:** Mismatched demand reduces efficiency; adaptation improves it.
+
+### Experiment 4: EMA Smoothing Effect
+1. Set a slider to 100%
+2. Immediately change it to 10%
+3. Watch: Green time changes smoothly, not abruptly
+4. Without EMA, it would jump instantly
+
+**Learning:** Smoothing creates realistic, stable transitions.
+
+### Experiment 5: Time-Based Variation
+1. Set all sliders to 50%
+2. Play for a few cycles
+3. Notice: Densities vary (simulating real traffic)
+4. If you run at 7 AM (current hour), notice higher baseline
+5. If you run at 3 AM, notice lower baseline
+
+**Learning:** Real traffic has natural variation; adaptation handles it.
+
+---
+
+## Key Metrics Explained
+
+### Cycle Count
+- Increments by 1 each time the algorithm recalculates
+- ~1 cycle per 2 seconds
+- 60 cycles ≈ 2 minutes of simulation
+
+### Latency
+- Simulated sensor delay (0-10ms)
+- In real systems: time for loop detection → signal computation → actuation
+- Realistic value for traffic sensors
+
+### Avg Density
+- Average of all four lanes' densities
+- Formula: `(North + South + East + West) / 4`
+- Ranges 0-100%
+- Helps understand overall traffic load
+
+### Efficiency Score
+- Measures how well allocation matches demand
+- Formula: `(1 - |demand ratio - allocation ratio|) × 100%`
+- Perfect score: 100% (allocation exactly matches demand)
+- Minimum score: Shows worst-case scenario
+- Higher is better
+
+---
+
+## Advanced Features
+
+### Scenario Management
+
+#### Save Scenario
+1. Configure your setup (sliders, cycle length, duration)
+2. Run simulation to generate data
+3. Click "Save Scenario" button
+4. Enter a name (e.g., "rush_hour_test")
+5. Scenario saved with:
+   - All configuration values
+   - Complete history and charts
+   - Metrics and state
+
+#### Load Scenario
+1. Click "Load Scenario" dropdown
+2. Select previously saved scenario
+3. App restores:
+   - All slider positions
+   - Configuration values
+   - Historical data (visible in charts)
+   - All calculated metrics
+
+#### Delete Scenario
+1. Select a scenario from dropdown
+2. Click "Delete Scenario"
+3. Permanently removed from storage
+
+### Export Data
+
+#### Export as CSV
+- Downloads: time, densities, green times, efficiency
+- Format: Spreadsheet-compatible
+- Use: Excel, Google Sheets, data analysis tools
+
+#### Export as JSON
+- Downloads: Complete simulation state
+- Format: Structured data
+- Use: Further processing, archival, sharing
+
+#### Export Screenshot
+- Downloads: Visual snapshot of dashboard
+- Format: PNG image
+- Use: Reports, presentations, documentation
+
+---
+
+## Real-World Applications
+
+This app models concepts used in:
+
+1. **City Traffic Management**
+   - Adaptive traffic control systems (ATCS)
+   - Intelligent Transportation Systems (ITS)
+   - Urban traffic optimization
+
+2. **Intersection Design**
+   - Signal timing optimization
+   - Cycle length determination
+   - Green time allocation strategies
+
+3. **Transportation Planning**
+   - Capacity analysis
+   - Congestion prediction
+   - Infrastructure improvement planning
+
+4. **Algorithm Development**
+   - Testing new allocation algorithms
+   - Comparing control strategies
+   - Validating mathematical models
+
+---
+
+## Technical Stack (What You're Learning)
+
+- **Frontend:** HTML, CSS, JavaScript
+- **Charts:** Chart.js for real-time visualization
+- **Architecture:** Event-driven simulation
+- **Algorithms:** Proportional allocation, EMA smoothing, Gaussian distribution
+- **Patterns:** MVC (Model-View-Controller), Observer pattern
+
+---
+
+## Tips for Best Experience
+
+### Performance
+- Run simulations 5-10 minutes for good data patterns
+- Longer runs show more variation and adaptation
+- Shorter runs good for testing specific scenarios
+
+### Data Quality
+- Change sliders slowly to see smooth transitions
+- Pause occasionally to examine metrics
+- Use different time-of-day to see pattern effects
+
+### Learning
+- Start simple: All sliders at 50%
+- Progress to complex: Varied densities
+- Experiment: Change constraints, durations
+- Document: Save scenarios you find interesting
+
+### Troubleshooting
+- Timer updates but no other changes? Fix density generation (see critical bug guide)
+- Charts not rendering? Check console for errors
+- Sliders don't change values? Ensure simulation is running or paused (not stopped)
+- All values frozen at 0? Hard refresh browser (Ctrl+Shift+R)
+
+---
+
+## Educational Outcomes
+
+After using this app, you'll understand:
+
+1. ✅ **How adaptive traffic control works**
+2. ✅ **Why proportional allocation improves efficiency**
+3. ✅ **How constraints ensure fairness and safety**
+4. ✅ **Real-time system behavior and feedback loops**
+5. ✅ **Data visualization and metrics interpretation**
+6. ✅ **Algorithm design for optimization problems**
+7. ✅ **Simulation as a learning and testing tool**
+
+---
+
+## Summary
+
+| Aspect | Details |
+|--------|---------|
+| **What** | Interactive adaptive traffic signal simulator |
+| **Why** | Learn how intelligent traffic control works |
+| **Who** | Students, engineers, transportation professionals, curious learners |
+| **How** | Set density/config, click Play, observe real-time adaptation |
+| **Where** | Browser-based, no installation needed |
+| **When** | Anytime - simulated time, not real-time |
+| **Learning** | Hands-on experimentation with algorithmic control systems |
+
+**Start simple, experiment freely, observe patterns, understand principles, apply knowledge!** 🚦✨
